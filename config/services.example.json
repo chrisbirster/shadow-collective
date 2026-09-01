@@ -1,0 +1,27 @@
+{
+  "health_listen": "0.0.0.0:9000",
+  "http": [
+    {
+      "name": "pihole-admin",
+      "listen": "0.0.0.0:10001",
+      "upstream": "http://shadow-pihole.internal:80"
+    },
+    {
+      "name": "my-app",
+      "listen": "0.0.0.0:10002",
+      "upstream": "http://my-app.internal:8080"
+    }
+  ],
+  "tcp": [
+    {
+      "name": "postgres",
+      "listen": "0.0.0.0:15432",
+      "upstream": "postgres.internal:5432"
+    }
+  ],
+  "dns": {
+    "enabled": true,
+    "listen": "0.0.0.0:53",
+    "upstream": "shadow-pihole.internal:53"
+  }
+}
