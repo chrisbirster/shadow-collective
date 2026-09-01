@@ -7,8 +7,17 @@ TAILSCALE_SERVE_CONFIG="${TAILSCALE_SERVE_CONFIG:-/app/config/tailscale-services
 GATEWAY_PID=""
 TAILSCALED_PID=""
 
-if [ -z "${TAILSCALE_AUTHKEY:-}" ]; then
-  echo "TAILSCALE_AUTHKEY is required. Set it with: fly secrets set TAILSCALE_AUTHKEY=tskey-..." >&2
+# The auth key is an enrollment credential, not a permanent runtime secret.
+# Remember whether durable node state existed before tailscaled starts, because
+# tailscaled may create the state file itself during startup.
+STATE_PRESENT=0
+if [ -s "$TAILSCALE_STATE" ]; then
+  STATE_PRESENT=1
+fi
+
+if [ "$STATE_PRESENT" -eq 0 ] && [ -z "${TAILSCALE_AUTHKEY:-}" ]; then
+  echo "TAILSCALE_AUTHKEY is required only for first enrollment (no persisted Tailscale state found)." >&2
+  echo "Set it with: fly secrets set TAILSCALE_AUTHKEY=tskey-..." >&2
   exit 1
 fi
 
@@ -43,15 +52,26 @@ while [ ! -S "$TAILSCALE_SOCKET" ]; do
 done
 
 set -- /app/tailscale --socket="$TAILSCALE_SOCKET" up \
-  --auth-key="$TAILSCALE_AUTHKEY" \
   --hostname="${TS_HOSTNAME:-shadow-collective}" \
   --accept-dns=false
+
+# Only use the auth key when enrolling a node with no durable state. Once the
+# node is enrolled, /data/tailscaled.state is the source of truth and the key
+# may safely expire or be revoked.
+if [ "$STATE_PRESENT" -eq 0 ]; then
+  set -- "$@" --auth-key="$TAILSCALE_AUTHKEY"
+fi
 
 if [ -n "${TS_TAGS:-}" ]; then
   set -- "$@" --advertise-tags="$TS_TAGS"
 fi
 
-"$@"
+if ! "$@"; then
+  if [ "$STATE_PRESENT" -eq 1 ]; then
+    echo "tailscale up failed using persisted state. If this node was logged out, clear $TAILSCALE_STATE and provide a fresh TAILSCALE_AUTHKEY for re-enrollment." >&2
+  fi
+  exit 1
+fi
 
 /app/shadow-collective -config "${GATEWAY_CONFIG:-/app/config/services.json}" &
 GATEWAY_PID=$!
