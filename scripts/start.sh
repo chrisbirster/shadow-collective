@@ -4,6 +4,8 @@ set -eu
 TAILSCALE_SOCKET="${TAILSCALE_SOCKET:-/var/run/tailscale/tailscaled.sock}"
 TAILSCALE_STATE="${TAILSCALE_STATE:-/data/tailscaled.state}"
 TAILSCALE_SERVE_CONFIG="${TAILSCALE_SERVE_CONFIG:-/app/config/tailscale-services.json}"
+GATEWAY_PID=""
+TAILSCALED_PID=""
 
 if [ -z "${TAILSCALE_AUTHKEY:-}" ]; then
   echo "TAILSCALE_AUTHKEY is required. Set it with: fly secrets set TAILSCALE_AUTHKEY=tskey-..." >&2
@@ -18,8 +20,14 @@ mkdir -p "$(dirname "$TAILSCALE_SOCKET")" "$(dirname "$TAILSCALE_STATE")"
 TAILSCALED_PID=$!
 
 cleanup() {
-  kill "$GATEWAY_PID" "$TAILSCALED_PID" 2>/dev/null || true
-  wait "$GATEWAY_PID" "$TAILSCALED_PID" 2>/dev/null || true
+  if [ -n "$GATEWAY_PID" ]; then
+    kill "$GATEWAY_PID" 2>/dev/null || true
+    wait "$GATEWAY_PID" 2>/dev/null || true
+  fi
+  if [ -n "$TAILSCALED_PID" ]; then
+    kill "$TAILSCALED_PID" 2>/dev/null || true
+    wait "$TAILSCALED_PID" 2>/dev/null || true
+  fi
 }
 trap cleanup INT TERM EXIT
 
