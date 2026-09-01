@@ -1,0 +1,20 @@
+# Example companion app. Change `app` if this name is unavailable.
+app = "shadow-pihole"
+primary_region = "iad"
+
+[build]
+  image = "pihole/pihole:latest"
+
+[env]
+  TZ = "America/New_York"
+  FTLCONF_dns_listeningMode = "ALL"
+
+[mounts]
+  source = "pihole_data"
+  destination = "/etc/pihole"
+  initial_size = "1gb"
+  snapshot_retention = 7
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"
