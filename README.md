@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/assets/shadow-collective.jpg" alt="Shadow Collective" width="100%" />
+  <img src="docs/assets/shadow-collective.png" alt="Shadow Collective" width="100%" />
 </p>
 
 # Shadow Collective
