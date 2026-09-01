@@ -1,0 +1,31 @@
+app = "shadow-collective"
+primary_region = "iad"
+kill_signal = "SIGTERM"
+kill_timeout = "10s"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  GATEWAY_CONFIG = "/app/config/services.json"
+  TAILSCALE_SERVE_CONFIG = "/app/config/tailscale-services.json"
+  TS_HOSTNAME = "shadow-collective"
+
+[mounts]
+  source = "shadow_state"
+  destination = "/data"
+  initial_size = "1gb"
+  snapshot_retention = 7
+
+[checks.gateway]
+  type = "http"
+  port = 9000
+  method = "GET"
+  path = "/healthz"
+  interval = "15s"
+  timeout = "2s"
+  grace_period = "10s"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "256mb"
