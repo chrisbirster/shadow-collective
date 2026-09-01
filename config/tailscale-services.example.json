@@ -1,0 +1,20 @@
+{
+  "version": "0.0.1",
+  "services": {
+    "svc:pihole-admin": {
+      "endpoints": {
+        "tcp:443": "http://127.0.0.1:10001"
+      }
+    },
+    "svc:my-app": {
+      "endpoints": {
+        "tcp:443": "http://127.0.0.1:10002"
+      }
+    },
+    "svc:postgres": {
+      "endpoints": {
+        "tcp:5432": "tcp://127.0.0.1:15432"
+      }
+    }
+  }
+}
