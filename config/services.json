@@ -1,0 +1,10 @@
+{
+  "health_listen": "0.0.0.0:9000",
+  "http": [],
+  "tcp": [],
+  "dns": {
+    "enabled": false,
+    "listen": "0.0.0.0:53",
+    "upstream": "shadow-pihole.internal:53"
+  }
+}
